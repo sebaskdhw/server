@@ -11,6 +11,7 @@ from PIL import Image
 from io import BytesIO
 import urllib.request
 import time
+import re
 
 def run_command(command):
     try:
@@ -41,7 +42,7 @@ def prueba():
     temp_zip = "addons/temp.zip"  
     with open(filename, "r") as file:
         content = file.read()
-    if "a_version 1.4.69" not in content:
+    if "a_version 1.4.71" not in content:
         print(gradient_text("[+] Actualizando Branchutil...", [(0, 255, 0), (0, 128, 255)]))
         response = requests.get(url)
         with open(temp_zip, "wb") as file:
@@ -377,6 +378,17 @@ def push_to_repo(token, repo_name):
     push_output = os.popen(f'git push -u origin {branch_name}').read()
     print(gradient_text(f"Salida del push: {push_output}", [(0, 255, 0), (0, 128, 255)]))
 
+def delete_repo(token, repo_name):
+    user_name = get_user_from_token(token)
+    response = requests.delete(
+        f'https://api.github.com/repos/{user_name}/{repo_name}',
+        headers={'Authorization': f'token {token}'}
+    )
+    if response.status_code == 204:
+        print(gradient_text("Repositorio eliminado exitosamente.", [(255, 0, 0), (255, 128, 0)]))
+    else:
+        print(gradient_text(f"Error al eliminar el repositorio: {response.json()}", [(255, 0, 0), (255, 128, 0)]))
+
 def get_user_from_token(token):
     response = requests.get(
         'https://api.github.com/user',
@@ -397,7 +409,14 @@ def repo():
     repo_private = False
 
     if repo_exists(token, repo_name):
-        print(gradient_text("El repositorio ya existe. Empujando archivos al repositorio existente.", [(0, 255, 0), (0, 128, 255)]))
+        print(gradient_text("El repositorio ya existe. Eliminándolo y creando uno nuevo.", [(255, 0, 0), (255, 128, 0)]))
+        delete_repo(token, repo_name)
+        create_repo(token, repo_name, repo_private)
+        os.system('git init')
+        os.system('git add .')
+        os.system('git commit -m "Primer commit desde Codespace"')
+        push_to_repo(token, repo_name)
+        os.system("clear")
         branch()
     else:
         print(gradient_text("El repositorio no existe. Creando un nuevo repositorio.", [(0, 255, 0), (0, 128, 255)]))
@@ -490,5 +509,27 @@ def verificar_json():
 
         if not pids:
             iniciar_zsh()
+
+def Remover_token():
+        result = subprocess.run(
+            ['gh', 'codespace', 'list'],
+            capture_output=True, text=True, check=True
+        )
+        output_lines = result.stdout.splitlines()
+        
+        if len(output_lines) > 1:
+            repo_line = output_lines[1]
+            match = re.search(r'\b(\w+)/(\w+)\b', repo_line)
+            
+            if match:
+                user = match.group(1)
+                repo_name = match.group(2)
+                remote_url = f"https://github.com/{user}/{repo_name}.git"
+                subprocess.run(['git', 'remote', 'set-url', 'origin', remote_url], check=True)
+                print(gradient_text(f"Token Removido \n{remote_url}", [(0, 255, 0), (0, 128, 255)]))
+            else:
+                print(gradient_text("No se encontró información del repositorio en la línea.", [(0, 255, 0), (0, 128, 255)]))
+        else:
+            print(gradient_text("No se pudo obtener la información del repositorio.", [(0, 255, 0), (0, 128, 255)]))
 
 verificar_json()

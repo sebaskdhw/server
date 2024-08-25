@@ -1,6 +1,6 @@
 :main
 a_name BranchUtil
-a_version 1.4.69
+a_version 1.4.71
 a_author Luna
 var redefinir_logo True
 
@@ -33,7 +33,21 @@ sleep 1
 
 :section repo
 cls
+nsay [1] Iniciar respaldo
+nsay [2] Remover Token
+input cond Selecciona una opción > 
+if "%cond%" == "1"  Iresp none
+if "%cond%" == "2"  RemvT none
+sleep 1
+
+:section Iresp
+cls
 c_exec repo()
+sleep 1
+
+:section RemvT
+cls
+c_exec Remover_token()
 sleep 1
 
 :section respa
@@ -77,7 +91,7 @@ if "%redefinir_logo%"=="True" redefinir_logo_s none
 text Utilidades Branch
 nsay [1] Crear un Branch 
 nsay [2] Instalar un Branch 
-nsay [3] Respaldar en otra cuenta
+nsay [3] Respaldos en otra cuenta
 nsay [4] Respaldos automaticos 
 input cond Selecciona una opción > 
 if "%cond%" == "1"  branch none
